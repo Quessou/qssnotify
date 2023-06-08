@@ -1,6 +1,7 @@
 use std::fs;
 
 use async_trait::async_trait;
+use tracing;
 
 use super::constants;
 use crate::errors::initialization_error::InitializationError;
@@ -34,12 +35,16 @@ impl FilesystemInitializer {
 
 #[async_trait]
 impl Initializer for FilesystemInitializer {
+    #[tracing::instrument(name = "Initialize filesystem", skip(self))]
     async fn initialize(&self) -> Result<(), InitializationError> {
         if self.is_initialized() {
+            tracing::info!("Filesystem already initialized");
             return Err(InitializationError::AlreadyInitialized);
         } else if !self.is_consistent() {
+            tracing::warn!("Filesystem inconsistent, deleting everything");
             self.delete_files()?;
         }
+        tracing::info!("Initializing filesystem");
         fs::create_dir(&self.dir)?;
         let _ = fs::File::create(self.dir.join(constants::DATA_FILE_NAME))?;
         let _ = fs::File::create(self.dir.join(constants::CONFIG_FILE_NAME))?;

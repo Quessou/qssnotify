@@ -10,3 +10,6 @@ serde = {version = "1.0.163", features = ["derive"]}
 thiserror = "1.0.40"
 tokio = { version = "1.26.0", features = ["full"] }
 async-trait = "0.1.68"
+tracing = "0.1.37"
+tracing-subscriber = "0.3.17"
+home = "0.5.5"
