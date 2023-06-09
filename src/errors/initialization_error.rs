@@ -12,17 +12,6 @@ pub enum InitializationError {
     #[error("Could not reach server")]
     ServerCommunication,
 }
-/*
-impl PartialEq for InitializationError {
-    fn eq(&self, other: &Self) -> bool {
-        matches!(
-            (self, other),
-            (Self::AlreadyInitialized, Self::AlreadyInitialized)
-                | (Self::Filesystem(), Self::Filesystem(_))
-                | (Self::ServerCommunication, Self::ServerCommunication)
-        )
-    }
-}*/
 
 impl PartialEq for InitializationError {
     fn ne(&self, other: &Self) -> bool {
@@ -31,7 +20,7 @@ impl PartialEq for InitializationError {
 
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
-            (Self::Filesystem { source: l_source }, Self::Filesystem { source: r_source }) => true,
+            (Self::Filesystem { source: _ }, Self::Filesystem { source: _ }) => true,
             _ => core::mem::discriminant(self) == core::mem::discriminant(other),
         }
     }
