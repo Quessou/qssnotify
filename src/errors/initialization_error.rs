@@ -10,7 +10,7 @@ pub enum InitializationError {
         source: std::io::Error,
     },
     #[error("Could not reach server")]
-    ServerCommunication,
+    _ServerCommunication,
 }
 
 impl PartialEq for InitializationError {

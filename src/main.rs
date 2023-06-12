@@ -1,8 +1,8 @@
 // External imports
-use clap::{arg, builder::Arg, ArgGroup, Command};
+use clap::{arg, ArgGroup, Command};
 use home::home_dir;
 use tokio;
-use tracing::Level;
+use tracing::{subscriber::DefaultGuard, Level};
 use tracing_subscriber;
 
 mod data_objects;
@@ -13,6 +13,15 @@ mod traits;
 // Project imports
 use traits::initializer::Initializer;
 
+use crate::data_objects::sentence::Sentence;
+
+fn initialize_subscriber() -> DefaultGuard {
+    let subscriber = tracing_subscriber::FmtSubscriber::builder()
+        .with_max_level(Level::TRACE)
+        .finish();
+    tracing::subscriber::set_default(subscriber)
+}
+
 #[tokio::main]
 async fn main() {
     let command = Command::new("qssnotify").about("Allows to have notifications displayed regularly")
@@ -21,7 +30,7 @@ async fn main() {
         .arg(arg!(--delete <hash> "Deletes the sentence whose hash is given in parameter"))
         .arg(arg!(--get [hash] "Returns the sentence whose hash is given in parameter if a hash is specified, or a random sentence otherwise"))
         .arg(arg!(--list "Lists all registered sentences with the associated hash"))
-        .group(ArgGroup::new("subcommands").args(["add", "edit", "delete", "get", "list"/*, "help"*/]).required(true));
+        .group(ArgGroup::new("subcommands").args(["add", "edit", "delete", "get", "list"]).required(true));
 
     let arguments = command.get_matches();
 
@@ -33,6 +42,17 @@ async fn main() {
     }
     if let Some(true) = arguments.get_one::<bool>("add") {
         println!("add !!");
+
+        filesystem::write::write_data_file(
+            &home_dir()
+                .unwrap()
+                .join(".qssnotify")
+                .join(filesystem::constants::DATA_FILE_NAME),
+            vec![Sentence::new("mdr xd".to_owned())],
+        )
+        .await
+        .expect("blbl");
+        return;
     }
     if let Some(s) = arguments.get_one::<String>("delete") {
         println!("delete !! {s}");
@@ -47,14 +67,7 @@ async fn main() {
             println!("get without an arg !!!");
         }
     }
-
-    let subscriber = tracing_subscriber::FmtSubscriber::builder()
-        // all spans/events with a level higher than TRACE (e.g, debug, info, warn, etc.)
-        // will be written to stdout.
-        .with_max_level(Level::TRACE)
-        // builds the subscriber.
-        .finish();
-    let _subscriber_guard = tracing::subscriber::set_default(subscriber);
+    let _guard = initialize_subscriber();
 
     let initializer = filesystem::filesystem_initializer::FilesystemInitializer::new(
         home_dir().unwrap().join(".qssnotify").to_str().unwrap(),
@@ -67,4 +80,14 @@ async fn main() {
             );
         }
     }
+
+    let sentences = filesystem::read::read_data_file(
+        &home_dir()
+            .unwrap()
+            .join(".qssnotify")
+            .join(filesystem::constants::DATA_FILE_NAME),
+    )
+    .await;
+
+    println!("SENTENCES : {:?}", sentences);
 }

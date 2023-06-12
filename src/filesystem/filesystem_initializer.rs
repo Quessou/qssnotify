@@ -41,6 +41,7 @@ impl Initializer for FilesystemInitializer {
             tracing::info!("Filesystem already initialized");
             return Err(InitializationError::AlreadyInitialized);
         } else if !self.is_consistent() {
+            // TODO : Do we really want to delete everything ?
             tracing::warn!("Filesystem inconsistent, deleting everything");
             self.delete_files()?;
         }
