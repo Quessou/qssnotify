@@ -1,10 +1,13 @@
-use std::fs;
+use tokio::fs;
 
 use async_trait::async_trait;
+use ron;
+use tokio::io::AsyncWriteExt;
 use tracing;
 
 use super::constants;
 use crate::errors::initialization_error::InitializationError;
+use crate::settings::Settings;
 use crate::traits::initializer::Initializer;
 
 static FILES: [&str; 2] = [constants::CONFIG_FILE_NAME, constants::DATA_FILE_NAME];
@@ -28,8 +31,8 @@ impl FilesystemInitializer {
         self.dir.exists() && FILES.iter().all(|f| self.dir.join(f).exists())
     }
 
-    pub fn delete_files(&self) -> Result<(), std::io::Error> {
-        fs::remove_dir_all(&self.dir)
+    pub async fn delete_files(&self) -> Result<(), std::io::Error> {
+        fs::remove_dir_all(&self.dir).await
     }
 }
 
@@ -43,12 +46,31 @@ impl Initializer for FilesystemInitializer {
         } else if !self.is_consistent() {
             // TODO : Do we really want to delete everything ?
             tracing::warn!("Filesystem inconsistent, deleting everything");
-            self.delete_files()?;
+            self.delete_files().await?;
         }
         tracing::info!("Initializing filesystem");
-        fs::create_dir(&self.dir)?;
-        let _ = fs::File::create(self.dir.join(constants::DATA_FILE_NAME))?;
-        let _ = fs::File::create(self.dir.join(constants::CONFIG_FILE_NAME))?;
+        fs::create_dir(&self.dir).await?;
+        let config_file_path = self.dir.join(constants::CONFIG_FILE_NAME);
+        let _ = fs::File::create(self.dir.join(constants::DATA_FILE_NAME)).await?;
+        let _ = fs::File::create(&config_file_path).await?;
+
+        let default_settings = Settings::default();
+        let settings_file = fs::File::create(config_file_path)
+            .await
+            .expect("Opening of settings file failed");
+        let mut writer: tokio::io::BufWriter<_> = tokio::io::BufWriter::new(settings_file);
+        let r = writer
+            .write_all(ron::to_string(&default_settings).unwrap().as_bytes())
+            .await;
+        match r {
+            Ok(_) => tracing::trace!("Writing of default settings on filesystem successful"),
+            Err(_) => tracing::error!("Writing of default settings on filesystem failed"),
+        }
+        let r = writer.flush().await;
+        match r {
+            Ok(_) => tracing::trace!("Flushing of default settings successful"),
+            Err(_) => tracing::error!("Flushing of default settings failed"),
+        }
 
         Ok(())
     }
@@ -70,7 +92,7 @@ mod tests {
             .await
             .expect("Initialization failed");
         assert!(initializer.is_initialized());
-        initializer.delete_files().expect("Cleaning failed");
+        initializer.delete_files().await.expect("Cleaning failed");
     }
     #[tokio::test]
     async fn test_already_initialized() {
@@ -81,6 +103,6 @@ mod tests {
             .expect("Initialization failed");
         let r = initializer.initialize().await;
         assert!(r.is_err() && r.unwrap_err() == InitializationError::AlreadyInitialized);
-        initializer.delete_files().expect("Cleaning failed");
+        initializer.delete_files().await.expect("Cleaning failed");
     }
 }

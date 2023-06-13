@@ -3,7 +3,7 @@ use tokio::io::AsyncWriteExt;
 
 use crate::data_objects::sentence::Sentence;
 
-pub async fn write_data_in_writer(
+async fn write_data_in_writer(
     data: &Vec<Sentence>,
     writer: &mut tokio::io::BufWriter<impl tokio::io::AsyncWrite + std::marker::Unpin>,
 ) -> Result<(), std::io::Error> {
@@ -13,12 +13,14 @@ pub async fn write_data_in_writer(
     Ok(())
 }
 
+#[tracing::instrument(name = "Writing data in file")]
 pub async fn write_data_file(
     path: &std::path::Path,
     data: Vec<Sentence>,
 ) -> Result<(), std::io::Error> {
     let file = tokio::fs::File::create(path).await?;
     let mut writer = tokio::io::BufWriter::new(file);
+    tracing::info!("Data writing successful");
     write_data_in_writer(&data, &mut writer).await
 }
 

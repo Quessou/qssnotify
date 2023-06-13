@@ -8,6 +8,7 @@ use tracing_subscriber;
 mod data_objects;
 mod errors;
 mod filesystem;
+mod settings;
 mod traits;
 
 // Project imports
@@ -34,13 +35,6 @@ async fn main() {
 
     let arguments = command.get_matches();
 
-    // Kinda ugly actually
-    if let None = arguments.get_one::<String>("get") {
-        let get_arguments = arguments.get_many::<String>("get");
-        if get_arguments.is_some() && get_arguments.unwrap().len() == 0 {
-            println!("get without an arg !!!");
-        }
-    }
     let _guard = initialize_subscriber();
 
     let initializer = filesystem::filesystem_initializer::FilesystemInitializer::new(
@@ -55,6 +49,15 @@ async fn main() {
         }
     }
 
+    let settings: settings::Settings = settings::read_settings(
+        &home_dir()
+            .unwrap()
+            .join(".qssnotify")
+            .join(filesystem::constants::CONFIG_FILE_NAME),
+    )
+    .await
+    .unwrap();
+
     if let Some(true) = arguments.get_one::<bool>("list") {
         println!("list !!");
     }
@@ -63,23 +66,19 @@ async fn main() {
     }
     if let Some(true) = arguments.get_one::<bool>("add") {
         println!("add !!");
-
-        filesystem::write::write_data_file(
-            &home_dir()
-                .unwrap()
-                .join(".qssnotify")
-                .join(filesystem::constants::DATA_FILE_NAME),
-            vec![Sentence::new("mdr xd".to_owned())],
-        )
-        .await
-        .expect("blbl");
-        return;
     }
     if let Some(s) = arguments.get_one::<String>("delete") {
         println!("delete !! {s}");
     }
     if let Some(a) = arguments.get_one::<String>("get") {
         println!("get with an arg !!! {:?}", a);
+    }
+    // Kinda ugly actually
+    if let None = arguments.get_one::<String>("get") {
+        let get_arguments = arguments.get_many::<String>("get");
+        if get_arguments.is_some() && get_arguments.unwrap().len() == 0 {
+            println!("get without an arg !!!");
+        }
     }
 
     let sentences = filesystem::read::read_data_file(

@@ -20,11 +20,13 @@ pub async fn reader_to_data(
 }
 
 // TODO : Return Result<Vec<Sentence>, std::io::Error> instead
+#[tracing::instrument(name = "Read data from file")]
 pub async fn read_data_file(path: &std::path::Path) -> Result<Vec<Sentence>, tokio::io::Error> {
     let f = tokio::fs::File::open(path)
         .await
         .expect("Opening file failed");
     let reader = BufReader::new(f);
+    tracing::info!("Data reading successful");
     reader_to_data(reader).await
 }
 
