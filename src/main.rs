@@ -34,6 +34,27 @@ async fn main() {
 
     let arguments = command.get_matches();
 
+    // Kinda ugly actually
+    if let None = arguments.get_one::<String>("get") {
+        let get_arguments = arguments.get_many::<String>("get");
+        if get_arguments.is_some() && get_arguments.unwrap().len() == 0 {
+            println!("get without an arg !!!");
+        }
+    }
+    let _guard = initialize_subscriber();
+
+    let initializer = filesystem::filesystem_initializer::FilesystemInitializer::new(
+        home_dir().unwrap().join(".qssnotify").to_str().unwrap(),
+    );
+    if let Err(e) = initializer.initialize().await {
+        if e != errors::initialization_error::InitializationError::AlreadyInitialized {
+            tracing::info!(
+                "Filesystem issue when trying to create the data directory : {}",
+                e
+            );
+        }
+    }
+
     if let Some(true) = arguments.get_one::<bool>("list") {
         println!("list !!");
     }
@@ -59,26 +80,6 @@ async fn main() {
     }
     if let Some(a) = arguments.get_one::<String>("get") {
         println!("get with an arg !!! {:?}", a);
-    }
-    // Kinda ugly actually
-    if let None = arguments.get_one::<String>("get") {
-        let get_arguments = arguments.get_many::<String>("get");
-        if get_arguments.is_some() && get_arguments.unwrap().len() == 0 {
-            println!("get without an arg !!!");
-        }
-    }
-    let _guard = initialize_subscriber();
-
-    let initializer = filesystem::filesystem_initializer::FilesystemInitializer::new(
-        home_dir().unwrap().join(".qssnotify").to_str().unwrap(),
-    );
-    if let Err(e) = initializer.initialize().await {
-        if e != errors::initialization_error::InitializationError::AlreadyInitialized {
-            tracing::info!(
-                "Filesystem issue when trying to create the data directory : {}",
-                e
-            );
-        }
     }
 
     let sentences = filesystem::read::read_data_file(
