@@ -1,10 +1,8 @@
 // External imports
 use clap::{arg, ArgGroup, Command};
-use home::home_dir;
-use tokio;
 use tracing::{subscriber::DefaultGuard, Level};
-use tracing_subscriber;
 
+mod actions;
 mod data_objects;
 mod errors;
 mod filesystem;
@@ -13,8 +11,6 @@ mod traits;
 
 // Project imports
 use traits::initializer::Initializer;
-
-use crate::data_objects::sentence::Sentence;
 
 fn initialize_subscriber() -> DefaultGuard {
     let subscriber = tracing_subscriber::FmtSubscriber::builder()
@@ -38,8 +34,11 @@ async fn main() {
     let _guard = initialize_subscriber();
 
     let initializer = filesystem::filesystem_initializer::FilesystemInitializer::new(
-        home_dir().unwrap().join(".qssnotify").to_str().unwrap(),
+        filesystem::paths::get_app_directory_path()
+            .to_str()
+            .unwrap(),
     );
+
     if let Err(e) = initializer.initialize().await {
         if e != errors::initialization_error::InitializationError::AlreadyInitialized {
             tracing::info!(
@@ -49,14 +48,10 @@ async fn main() {
         }
     }
 
-    let settings: settings::Settings = settings::read_settings(
-        &home_dir()
-            .unwrap()
-            .join(".qssnotify")
-            .join(filesystem::constants::CONFIG_FILE_NAME),
-    )
-    .await
-    .unwrap();
+    let _settings: settings::Settings =
+        settings::read_settings(&filesystem::paths::get_config_file_path())
+            .await
+            .unwrap();
 
     if let Some(true) = arguments.get_one::<bool>("list") {
         println!("list !!");
@@ -66,6 +61,10 @@ async fn main() {
     }
     if let Some(true) = arguments.get_one::<bool>("add") {
         println!("add !!");
+        let r = actions::add::add_sentence(&_settings).await;
+        if r.is_err() {
+            panic!();
+        }
     }
     if let Some(s) = arguments.get_one::<String>("delete") {
         println!("delete !! {s}");
@@ -74,20 +73,15 @@ async fn main() {
         println!("get with an arg !!! {:?}", a);
     }
     // Kinda ugly actually
-    if let None = arguments.get_one::<String>("get") {
+    if arguments.get_one::<String>("get").is_none() {
         let get_arguments = arguments.get_many::<String>("get");
         if get_arguments.is_some() && get_arguments.unwrap().len() == 0 {
             println!("get without an arg !!!");
         }
     }
 
-    let sentences = filesystem::read::read_data_file(
-        &home_dir()
-            .unwrap()
-            .join(".qssnotify")
-            .join(filesystem::constants::DATA_FILE_NAME),
-    )
-    .await;
+    let sentences =
+        filesystem::read::read_data_file(&filesystem::paths::get_data_file_path()).await;
 
     println!("SENTENCES : {:?}", sentences);
 }

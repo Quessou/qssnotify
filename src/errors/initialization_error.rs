@@ -14,10 +14,6 @@ pub enum InitializationError {
 }
 
 impl PartialEq for InitializationError {
-    fn ne(&self, other: &Self) -> bool {
-        !self.eq(other)
-    }
-
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
             (Self::Filesystem { source: _ }, Self::Filesystem { source: _ }) => true,
