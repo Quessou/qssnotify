@@ -30,6 +30,12 @@ impl Display for Sentence {
     }
 }
 
+impl From<String> for Sentence {
+    fn from(value: String) -> Self {
+        Sentence { data: value }
+    }
+}
+
 #[cfg(test)]
 pub mod tests {
     use std::{assert_eq, assert_ne};

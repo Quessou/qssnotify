@@ -1,4 +1,7 @@
+use std::io::BufWriter;
+
 use ron;
+use tokio::fs::OpenOptions;
 use tokio::io::AsyncWriteExt;
 
 use crate::data_objects::sentence::Sentence;
@@ -24,12 +27,20 @@ pub async fn write_data_file(
     write_data_in_writer(&data, &mut writer).await
 }
 
+pub async fn append_to_data_file(
+    path: &std::path::Path,
+    data: Sentence,
+) -> Result<(), std::io::Error> {
+    let mut file = OpenOptions::new().append(true).open(path).await?;
+    let mut writer = tokio::io::BufWriter::new(&mut file);
+    write_data_in_writer(&vec![data], &mut writer).await
+}
+
 #[cfg(test)]
 mod tests {
 
     use tokio::io::AsyncReadExt;
 
-    //use super::super::read::reader_to_data;
     use super::*;
 
     #[tokio::test]

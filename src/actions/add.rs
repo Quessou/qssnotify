@@ -12,6 +12,5 @@ pub async fn add_sentence(settings: &Settings) -> Result<(), std::io::Error> {
     let content = read_file_content(temp_file.path().to_str().unwrap()).await?;
     println!("Sentence : {}", content);
 
-    // TODO : Save the sentence somewhere
-    Ok(())
+    utils::append_sentence_to_data_file(content.into()).await
 }
