@@ -1,9 +1,9 @@
-use std::io::BufWriter;
-
 use ron;
 use tokio::fs::OpenOptions;
 use tokio::io::AsyncWriteExt;
 
+use super::paths;
+use super::read;
 use crate::data_objects::sentence::Sentence;
 
 async fn write_data_in_writer(
@@ -31,9 +31,11 @@ pub async fn append_to_data_file(
     path: &std::path::Path,
     data: Sentence,
 ) -> Result<(), std::io::Error> {
-    let mut file = OpenOptions::new().append(true).open(path).await?;
-    let mut writer = tokio::io::BufWriter::new(&mut file);
-    write_data_in_writer(&vec![data], &mut writer).await
+    //let mut file = OpenOptions::new().read(true).open(path).await?;
+    //let mut writer = tokio::io::BufWriter::new(&mut file);
+    let mut sentences = read::read_data_file(&paths::get_data_file_path()).await?;
+    sentences.push(data);
+    write_data_file(path, sentences).await
 }
 
 #[cfg(test)]

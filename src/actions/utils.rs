@@ -41,11 +41,5 @@ pub async fn read_file_content(file_path: &str) -> Result<String, std::io::Error
 }
 
 pub async fn append_sentence_to_data_file(sentence: Sentence) -> Result<(), std::io::Error> {
-    /*    let mut f = OpenOptions::new()
-        .append(true)
-        .open(paths::get_data_file_path())
-        .await?;
-    let writer = BufWriter::new(&mut f);
-    */
     write::append_to_data_file(&paths::get_data_file_path(), sentence).await
 }
