@@ -1,5 +1,4 @@
 use ron;
-use tokio::fs::OpenOptions;
 use tokio::io::AsyncWriteExt;
 
 use super::paths;
@@ -31,8 +30,6 @@ pub async fn append_to_data_file(
     path: &std::path::Path,
     data: Sentence,
 ) -> Result<(), std::io::Error> {
-    //let mut file = OpenOptions::new().read(true).open(path).await?;
-    //let mut writer = tokio::io::BufWriter::new(&mut file);
     let mut sentences = read::read_data_file(&paths::get_data_file_path()).await?;
     sentences.push(data);
     write_data_file(path, sentences).await

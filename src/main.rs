@@ -55,6 +55,7 @@ async fn main() {
 
     if let Some(true) = arguments.get_one::<bool>("list") {
         println!("list !!");
+        actions::list::list_sentences().await.unwrap();
     }
     if let Some(c) = arguments.get_one::<String>("edit") {
         println!("edit !! {c}");

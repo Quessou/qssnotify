@@ -4,6 +4,7 @@ use std::{
     hash::{Hash, Hasher},
 };
 
+use colorful::Colorful;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
@@ -20,13 +21,18 @@ impl Sentence {
     pub fn hash(&self) -> u64 {
         let mut hasher = DefaultHasher::new();
         self.data.hash(&mut hasher);
-        hasher.finish()
+        hasher.finish() % (16 as u64).pow(8)
     }
 }
 
 impl Display for Sentence {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{}", self.data)
+        write!(
+            f,
+            "[{}] {}",
+            format!("{:8x}", self.hash()).red(),
+            self.data.clone().bold()
+        )
     }
 }
 

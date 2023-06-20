@@ -1,6 +1,5 @@
 use tempfile::NamedTempFile;
-use tokio::fs::OpenOptions;
-use tokio::io::{AsyncReadExt, BufWriter};
+use tokio::io::AsyncReadExt;
 
 use crate::data_objects::sentence::Sentence;
 use crate::filesystem::paths;
