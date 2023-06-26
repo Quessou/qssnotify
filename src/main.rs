@@ -1,3 +1,4 @@
+use actions::get::get;
 // External imports
 use clap::{arg, ArgGroup, Command};
 use tracing::{subscriber::DefaultGuard, Level};
@@ -80,19 +81,23 @@ async fn main() {
             .await
             .expect("Sentence deletion failed");
     }
-    if let Some(a) = arguments.get_one::<String>("get") {
-        println!("get with an arg !!! {:?}", a);
+    if let Some(str_hash) = arguments.get_one::<String>("get") {
+        let hash = str_to_hash(str_hash).expect("Hash parsing failed");
+        let s = actions::get::get(hash)
+            .await
+            .expect("Sentence retrieving failed")
+            .expect(&format!("Could not find sentence for hash {}", str_hash));
+        println!("{}", s);
     }
-    // Kinda ugly actually
     if arguments.get_one::<String>("get").is_none() {
         let get_arguments = arguments.get_many::<String>("get");
         if get_arguments.is_some() && get_arguments.unwrap().len() == 0 {
             println!("get without an arg !!!");
+            let s = actions::get::get_random()
+                .await
+                .expect("Sentence retrieving failed")
+                .expect("Could not find a random sentence (storage is empty ?)");
+            println!("{}", s);
         }
     }
-
-    let sentences =
-        filesystem::read::read_data_file(&filesystem::paths::get_data_file_path()).await;
-
-    println!("SENTENCES : {:?}", sentences);
 }

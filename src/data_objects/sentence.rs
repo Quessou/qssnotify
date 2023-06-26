@@ -7,7 +7,7 @@ use std::{
 use colorful::Colorful;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Sentence {
     data: String,
     // Need something else ?
