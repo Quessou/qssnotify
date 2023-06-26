@@ -19,6 +19,10 @@ fn initialize_subscriber() -> DefaultGuard {
     tracing::subscriber::set_default(subscriber)
 }
 
+fn str_to_hash(s: &str) -> Result<u64, std::num::ParseIntError> {
+    u64::from_str_radix(s, 16).into()
+}
+
 #[tokio::main]
 async fn main() {
     let command = Command::new("qssnotify").about("Allows to have notifications displayed regularly")
@@ -54,26 +58,27 @@ async fn main() {
             .unwrap();
 
     if let Some(true) = arguments.get_one::<bool>("list") {
-        println!("list !!");
+        tracing::trace!("listing registered sentences");
         actions::list::list_sentences().await.unwrap();
     }
     if let Some(hash) = arguments.get_one::<String>("edit") {
-        println!("edit !! {hash}");
-        // TODO : process the string to make it a u64
-        let hash: u64 = u64::from_str_radix(hash, 16).expect("Could not parse hash");
+        tracing::trace!("Editing sentence {hash}");
+        let hash = str_to_hash(hash).expect("Hash parsing failed");
         actions::edit::edit_sentence(hash, &settings)
             .await
             .expect("Could not edit sentence");
     }
     if let Some(true) = arguments.get_one::<bool>("add") {
-        println!("add !!");
-        let r = actions::add::add_sentence(&settings).await;
-        if r.is_err() {
-            panic!();
-        }
+        tracing::trace!("Adding a sentence");
+        actions::add::add_sentence(&settings)
+            .await
+            .expect("Sentence addition failed");
     }
-    if let Some(s) = arguments.get_one::<String>("delete") {
-        println!("delete !! {s}");
+    if let Some(hash) = arguments.get_one::<String>("delete") {
+        let hash = str_to_hash(hash).expect("Hash parsing failed");
+        actions::delete::delete_sentence(hash)
+            .await
+            .expect("Sentence deletion failed");
     }
     if let Some(a) = arguments.get_one::<String>("get") {
         println!("get with an arg !!! {:?}", a);
