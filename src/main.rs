@@ -48,7 +48,7 @@ async fn main() {
         }
     }
 
-    let _settings: settings::Settings =
+    let settings: settings::Settings =
         settings::read_settings(&filesystem::paths::get_config_file_path())
             .await
             .unwrap();
@@ -57,12 +57,17 @@ async fn main() {
         println!("list !!");
         actions::list::list_sentences().await.unwrap();
     }
-    if let Some(c) = arguments.get_one::<String>("edit") {
-        println!("edit !! {c}");
+    if let Some(hash) = arguments.get_one::<String>("edit") {
+        println!("edit !! {hash}");
+        // TODO : process the string to make it a u64
+        let hash: u64 = u64::from_str_radix(hash, 16).expect("Could not parse hash");
+        actions::edit::edit_sentence(hash, &settings)
+            .await
+            .expect("Could not edit sentence");
     }
     if let Some(true) = arguments.get_one::<bool>("add") {
         println!("add !!");
-        let r = actions::add::add_sentence(&_settings).await;
+        let r = actions::add::add_sentence(&settings).await;
         if r.is_err() {
             panic!();
         }

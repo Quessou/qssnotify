@@ -21,7 +21,11 @@ impl Sentence {
     pub fn hash(&self) -> u64 {
         let mut hasher = DefaultHasher::new();
         self.data.hash(&mut hasher);
-        hasher.finish() % (16 as u64).pow(8)
+        hasher.finish() % 16_u64.pow(8)
+    }
+
+    pub fn data(&self) -> &str {
+        &self.data
     }
 }
 

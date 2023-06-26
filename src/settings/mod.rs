@@ -81,7 +81,7 @@ mod tests {
         let path = std::path::Path::new("/tmp/dummy_settings");
 
         // Write dummy file
-        if let Err(_) = write_dummy_settings_file(&path).await {
+        if let Err(_) = write_dummy_settings_file(path).await {
             clean_test_read_settings(path).await;
             return;
         }
