@@ -1,18 +1,23 @@
+use chrono;
 use serde::{Deserialize, Serialize};
 use tokio::io::AsyncReadExt;
 
+#[serde_with::serde_as]
 #[derive(Deserialize, Serialize, PartialEq, Debug)]
 pub struct Settings {
     pub editor: String,
+    #[serde_as(as = "serde_with::DurationSeconds<i64>")]
+    pub duration: chrono::Duration,
 }
 
-// TODO : What to put here ?
+// TODO : What to put here ? Nothing ?
 impl Settings {}
 
 impl Default for Settings {
     fn default() -> Self {
         Self {
             editor: "nvim".to_owned(),
+            duration: chrono::Duration::minutes(60),
         }
     }
 }
