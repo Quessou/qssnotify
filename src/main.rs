@@ -1,8 +1,10 @@
 // External imports
 use clap::{arg, ArgGroup, Command};
+use data_objects::sentence::Sentence;
 use tracing::{subscriber::DefaultGuard, Level};
 
 mod actions;
+mod cli_displayer;
 mod core;
 mod data_objects;
 mod errors;
@@ -12,6 +14,7 @@ mod settings;
 mod traits;
 
 // Project imports
+use crate::core::Core;
 use traits::initializer::Initializer;
 
 fn initialize_subscriber() -> DefaultGuard {
@@ -55,10 +58,10 @@ async fn main() {
         settings::read_settings(&filesystem::paths::get_config_file_path())
             .await
             .unwrap();
-    let notifier = if arguments.get_one::<bool>("daemon").as_ref().unwrap() == &&true {
-        Some(os_notifier::OsNotifier {})
-    } else {
-        None
-    };
-    core::run(arguments, settings, notifier).await;
+    let mut core = Core::<
+        os_notifier::OsNotifier,
+        filesystem::storage::Storage,
+        cli_displayer::CliDisplayer<Sentence>,
+    >::default();
+    core.run(arguments, settings).await;
 }

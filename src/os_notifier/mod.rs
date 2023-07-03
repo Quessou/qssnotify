@@ -16,3 +16,9 @@ impl Notifier for OsNotifier {
         }
     }
 }
+
+impl Default for OsNotifier {
+    fn default() -> Self {
+        Self {}
+    }
+}

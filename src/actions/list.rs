@@ -1,10 +1,13 @@
-use crate::filesystem::paths;
-use crate::filesystem::read;
+use crate::data_objects::sentence::Sentence;
+use crate::traits::displayer::Displayer;
+use crate::traits::storage::Storage;
 
-pub async fn list_sentences() -> Result<(), std::io::Error> {
-    let sentences = read::read_data_file(&paths::get_data_file_path()).await?;
-    for s in sentences {
-        println!("{}", s);
-    }
+// TODO : Remove me / move me into Displayer ?
+pub async fn list_sentences(
+    storage: &impl Storage,
+    displayer: &impl Displayer<Sentence>,
+) -> Result<(), std::io::Error> {
+    let sentences = storage.get_all().await?;
+    displayer.display_vec(sentences).await;
     Ok(())
 }

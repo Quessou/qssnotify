@@ -5,8 +5,6 @@ use tempfile::NamedTempFile;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
 use crate::data_objects::sentence::Sentence;
-use crate::filesystem::paths;
-use crate::filesystem::write;
 
 pub fn create_tmp_file() -> NamedTempFile {
     let temp_file = NamedTempFile::new();
@@ -67,10 +65,6 @@ pub async fn read_file_content(file: &NamedTempFile) -> Result<String, std::io::
     let r = reader.read_to_string(&mut buf).await;
     r?;
     Ok(buf.trim().to_owned())
-}
-
-pub async fn append_sentence_to_data_file(sentence: Sentence) -> Result<(), std::io::Error> {
-    write::append_to_data_file(&paths::get_data_file_path(), sentence).await
 }
 
 #[cfg(test)]
