@@ -26,14 +26,6 @@ impl<N: Notifier + Default, S: Storage + Default, D: Displayer<Sentence> + Defau
     pub async fn run(&mut self, arguments: ArgMatches, settings: Settings) {
         if let Some(true) = arguments.get_one::<bool>("list") {
             tracing::trace!("listing registered sentences");
-            /*
-            let sentences = self
-                .storage
-                .get_all()
-                .await
-                .expect("Data file reading failed");
-            self.displayer.display_vec(sentences).await;
-            */
             actions::list::list_sentences(&self.storage, &self.displayer)
                 .await
                 .expect("Listing sentences failed");
@@ -76,25 +68,39 @@ impl<N: Notifier + Default, S: Storage + Default, D: Displayer<Sentence> + Defau
             }
         }
         if let Some(true) = arguments.get_one::<bool>("daemon") {
-            let sentences = self
-                .storage
-                .get_all()
-                .await
-                .expect("Could not read data file");
-            if sentences.is_empty() {
-                tracing::info!("No sentence could be retrieved, exiting");
-                return;
+            self.demon_mode(settings).await;
+        }
+    }
+
+    pub async fn demon_mode(&self, settings: Settings) -> ! {
+        // TODO : Put this in its own function
+        let mut sentences = self
+            .storage
+            .get_all()
+            .await
+            .expect("Could not read data file");
+        let mut last_edition_time = self.storage.get_last_edition_time().await.unwrap();
+        if sentences.is_empty() {
+            tracing::info!("No sentence could be retrieved, exiting");
+            panic!();
+        }
+        let mut generator = rand::thread_rng();
+        loop {
+            let duration = tokio::time::Duration::from_secs(settings.duration.num_seconds() as u64);
+            tokio::time::sleep(duration).await;
+            let new_last_edition_time = self.storage.get_last_edition_time().await.unwrap();
+            if new_last_edition_time != last_edition_time {
+                sentences = self
+                    .storage
+                    .get_all()
+                    .await
+                    .expect("Could not read data file");
+                last_edition_time = new_last_edition_time;
             }
-            let mut generator = rand::thread_rng();
-            loop {
-                let duration =
-                    tokio::time::Duration::from_secs(settings.duration.num_seconds() as u64);
-                tokio::time::sleep(duration).await;
-                let s: Sentence = sentences[generator.gen::<usize>() % sentences.len()].clone();
-                if let Err(_) = self.notifier.notify(s) {
-                    tracing::error!("Notifying the OS failed");
-                    panic!();
-                }
+            let s: Sentence = sentences[generator.gen::<usize>() % sentences.len()].clone();
+            if let Err(_) = self.notifier.notify(s) {
+                tracing::error!("Notifying the OS failed");
+                panic!();
             }
         }
     }

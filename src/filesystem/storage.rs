@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use chrono::DateTime;
 
 use crate::data_objects::sentence::Sentence;
 use crate::filesystem::paths;
@@ -17,6 +18,14 @@ impl StorageTrait for Storage {
     }
     async fn write_all(&self, sentences: Vec<Sentence>) -> Result<(), std::io::Error> {
         write::write_data_file(&paths::get_data_file_path(), sentences).await
+    }
+    async fn get_last_edition_time(
+        &self,
+    ) -> Result<DateTime<chrono::offset::Local>, std::io::Error> {
+        let toto = tokio::fs::metadata(paths::get_data_file_path())
+            .await
+            .unwrap();
+        Ok(chrono::DateTime::from(toto.modified().unwrap()))
     }
 }
 impl Default for Storage {
