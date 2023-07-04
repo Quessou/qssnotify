@@ -6,6 +6,7 @@ use crate::filesystem::paths;
 use crate::filesystem::{read, write};
 use crate::traits::storage::Storage as StorageTrait;
 
+#[derive(Default)]
 pub struct Storage {}
 
 #[async_trait]
@@ -28,8 +29,4 @@ impl StorageTrait for Storage {
         Ok(chrono::DateTime::from(toto.modified().unwrap()))
     }
 }
-impl Default for Storage {
-    fn default() -> Self {
-        Self {}
-    }
-}
+

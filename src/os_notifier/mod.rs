@@ -1,6 +1,7 @@
 use crate::data_objects::sentence::Sentence;
 use crate::traits::notifier::Notifier;
 
+#[derive(Default)]
 pub struct OsNotifier {}
 
 impl Notifier for OsNotifier {
@@ -17,8 +18,4 @@ impl Notifier for OsNotifier {
     }
 }
 
-impl Default for OsNotifier {
-    fn default() -> Self {
-        Self {}
-    }
-}
+

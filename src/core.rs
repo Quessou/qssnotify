@@ -8,7 +8,7 @@ use crate::actions;
 use crate::traits::{displayer::Displayer, notifier::Notifier, storage::Storage};
 
 fn str_to_hash(s: &str) -> Result<u64, std::num::ParseIntError> {
-    u64::from_str_radix(s, 16).into()
+    u64::from_str_radix(s, 16)
 }
 
 pub struct Core<N, S, D>
@@ -54,7 +54,7 @@ impl<N: Notifier + Default, S: Storage + Default, D: Displayer<Sentence> + Defau
             let s = actions::get::get(&self.storage, hash)
                 .await
                 .expect("Sentence retrieving failed")
-                .expect(&format!("Could not find sentence for hash {}", str_hash));
+                .unwrap_or_else(|| panic!("Could not find sentence for hash {}", str_hash));
             self.displayer.display_item(s).await;
         }
         if arguments.get_one::<String>("get").is_none() {
