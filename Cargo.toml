@@ -28,6 +28,7 @@ colorful = "0.2.2"
 nix = "0.26.2"
 rand = "0.8.5"
 notify-rust = "4.8.0"
+time = "0.2.23"
 chrono = "0.4.26"
 serde_with = { version = "3.0.0", features = ["chrono_0_4"]}
 
