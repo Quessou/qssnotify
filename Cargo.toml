@@ -1,9 +1,17 @@
 [package]
 name = "qssnotify"
-version = "0.1.0"
+version = "1.0.0"
+rust-version = "1.70.0"
 edition = "2021"
+description = "An utility that allows to regularly display notifications in the Desktop environment. Useful to help you remember that you should take care of yourself and cuddle your cat (among other things)"
+authors = ["Maxime Mikotajewski <maximemikotajewski@gmail.com>"]
+categories = ["command-line-utilities", "desktop-environment", "notifications", "quality-of-life"]
+readme = "README.md"
+license-file = "LICENSE"
+repository = "https://github.com/Quessou/qssnotify"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[[bin]]
+name = "qssnotify"
 
 [dependencies]
 serde = {version = "1.0.163", features = ["derive"]}
@@ -22,3 +30,18 @@ rand = "0.8.5"
 notify-rust = "4.8.0"
 chrono = "0.4.26"
 serde_with = { version = "3.0.0", features = ["chrono_0_4"]}
+
+
+[package.metadata.deb]
+license-file = [ "LICENCE" ]
+depends = "$auto"
+extended-description = """
+QSSNotify is an utility that allows to display regularly notifications in the desktop environment.
+This can be used to send yourself messages telling you to take care of yourself, take breaks, hydrate yourself, go outside and go breathe some fresh air instead of struggling with what you're doing right now.
+Because you deserve breaks and to get some rest.
+"""
+section = "utils"
+priority = "optional"
+assets = [
+    [ "target/release/qssnotify", "/usr/bin/qssnotify", "0755" ],
+]
